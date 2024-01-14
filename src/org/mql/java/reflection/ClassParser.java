@@ -1,10 +1,22 @@
 package org.mql.java.reflection;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JFrame;
 import javax.xml.namespace.QName;
@@ -131,7 +143,154 @@ public class ClassParser {
 				        return sequellet;
 				
 	}
+
+	public static List<String> extractAnnotations(List<String> packages, String path) throws ClassNotFoundException {
+        Map<String, List<String>> classesByPackages = new HashMap<>();
+        URL binUrl;
+		try {
+			binUrl = new File(path).toURI().toURL();
+		
     
+        // Create a class loader with the bin directory URL
+        URLClassLoader classLoader = new URLClassLoader(new URL[]{binUrl});
+		
+        // Load a class from the bin directory
+        
+        
+        for (String mypackage : packages) {
+            String pack = mypackage.replace('.', '\\');
+            File dir = new File(path + "\\" + pack);
+            File classes[] = dir.listFiles();
+            List<String> classesInPackage = new ArrayList<>();
+
+            if (classes != null) {
+                for (File file : classes) {
+                	
+                		Class<?> externalClass=classLoader.loadClass(mypackage+"."+file.getName().replace(".class", ""));
+					
+                	if(externalClass.isAnnotation() ) {
+                        classesInPackage.add(file.getName());
+
+                	}
+                }
+            }
+
+            classesByPackages.put(mypackage, classesInPackage);
+        }
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        List<String> result = new ArrayList<>();
+        for (Map.Entry<String, List<String>> entry : classesByPackages.entrySet()) {
+            StringBuilder packageInfo = new StringBuilder(entry.getKey() + ": ");
+            for (String className : entry.getValue()) {
+            	
+                packageInfo.append(className).append(", ");
+            }
+            // Remove the trailing ", " and add to the result list
+            result.add(packageInfo.substring(0, packageInfo.length() - 2));
+        }
+
+        return result;
+    }
+	public static List<String> extractInterfaces(List<String> packages, String path) throws ClassNotFoundException {
+        Map<String, List<String>> classesByPackages = new HashMap<>();
+        URL binUrl;
+		try {
+			binUrl = new File(path).toURI().toURL();
+		
+    
+        // Create a class loader with the bin directory URL
+        URLClassLoader classLoader = new URLClassLoader(new URL[]{binUrl});
+		
+        // Load a class from the bin directory
+        
+        
+        for (String mypackage : packages) {
+            String pack = mypackage.replace('.', '\\');
+            File dir = new File(path + "\\" + pack);
+            File classes[] = dir.listFiles();
+            List<String> classesInPackage = new ArrayList<>();
+
+            if (classes != null) {
+                for (File file : classes) {
+                	
+                		Class<?> externalClass=classLoader.loadClass(mypackage+"."+file.getName().replace(".class", ""));
+					
+                	if(externalClass.isInterface()) {
+                        classesInPackage.add(file.getName());
+
+                	}
+                }
+            }
+
+            classesByPackages.put(mypackage, classesInPackage);
+        }
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        List<String> result = new ArrayList<>();
+        for (Map.Entry<String, List<String>> entry : classesByPackages.entrySet()) {
+            StringBuilder packageInfo = new StringBuilder(entry.getKey() + ": ");
+            for (String className : entry.getValue()) {
+            	
+                packageInfo.append(className).append(", ");
+            }
+            // Remove the trailing ", " and add to the result list
+            result.add(packageInfo.substring(0, packageInfo.length() - 2));
+        }
+
+        return result;
+    }
+	public static List<String> extractClasses(List<String> packages, String path) throws ClassNotFoundException {
+        Map<String, List<String>> classesByPackages = new HashMap<>();
+        URL binUrl;
+		try {
+			binUrl = new File(path).toURI().toURL();
+		
+    
+        URLClassLoader classLoader = new URLClassLoader(new URL[]{binUrl});
+		
+        
+        for (String mypackage : packages) {
+            String pack = mypackage.replace('.', '\\');
+            File dir = new File(path + "\\" + pack);
+            File classes[] = dir.listFiles();
+            List<String> classesInPackage = new ArrayList<>();
+
+            if (classes != null) {
+                for (File file : classes) {
+                	
+                		Class<?> externalClass=classLoader.loadClass(mypackage+"."+file.getName().replace(".class", ""));
+					
+                	if(!externalClass.isAnnotation() && !externalClass.isInterface()) {
+                        classesInPackage.add(file.getName());
+
+                	}
+                }
+            }
+
+            classesByPackages.put(mypackage, classesInPackage);
+        }
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        List<String> result = new ArrayList<>();
+        for (Map.Entry<String, List<String>> entry : classesByPackages.entrySet()) {
+            StringBuilder packageInfo = new StringBuilder(entry.getKey() + ": ");
+            for (String className : entry.getValue()) {
+            	
+                packageInfo.append(className).append(", ");
+            }
+
+            result.add(packageInfo.substring(0, packageInfo.length() - 2));
+        }
+
+        return result;
+    }
 	public String getSupperClass(Class<?> myClass) {
 		String name="";
 		
@@ -145,11 +304,47 @@ public class ClassParser {
 				
 	}
 	 
-	public static  void getAllPackages() {
-		Package[] pa = Package.getPackages();
-		for (int i = 0; i < pa.length; i++) {
-		    Package p = pa[i];
-		    System.out.println("\"" + p.getName() + "\", ");
-		}
-	}
+	
+
+	 public static List<String> getAllPackages(File projectURL) throws Exception {
+	        String path = projectURL.getPath();
+	        File projectDir = new File(path);
+	        List<String> repositoriesWithFiles = new ArrayList<>();
+	        scanPackages(projectDir, "", repositoriesWithFiles);
+
+	        return repositoriesWithFiles;
+	    }
+
+	  private static void scanPackages(File directory, String parentPackage, List<String> repositoriesWithFiles) {
+	        File[] files = directory.listFiles();
+
+	        if (files != null) {
+	            boolean hasFiles = false;
+
+	            for (File file : files) {
+	                if (file.isDirectory()) {
+	                    hasFiles = false; 
+
+	                    for (File subFile : file.listFiles()) {
+	                        if (subFile.isFile()) {
+	                            hasFiles = true;
+	                            break; 
+	                        }
+	                    }
+
+	                    if (hasFiles) {
+	                        String repositoryPath = parentPackage + file.getName();
+	                     
+	                        repositoriesWithFiles.add(repositoryPath);
+	                    }
+
+	                    scanPackages(file, parentPackage + file.getName() + ".", repositoriesWithFiles);
+	                }
+	            }
+	        }
+	    }
+
+
+         
+
 }
