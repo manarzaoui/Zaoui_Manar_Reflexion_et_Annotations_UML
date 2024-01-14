@@ -5,6 +5,7 @@ import org.mql.java.annotations.InfoLivre;
 @InfoLivre(titre = "Livre Générique", auteur = "Auteur Inconnu")
 public class Livre implements Empruntable {
     private boolean emprunte;
+    private Auteur livre;
 
     public void emprunter() {
         if (!emprunte) {

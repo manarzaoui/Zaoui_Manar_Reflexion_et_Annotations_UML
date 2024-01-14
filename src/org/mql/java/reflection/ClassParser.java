@@ -1,12 +1,19 @@
 package org.mql.java.reflection;
 
+import java.beans.XMLEncoder;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -19,8 +26,12 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.swing.JFrame;
-import javax.xml.namespace.QName;
 
+import javax.xml.namespace.QName;
+import org.mql.java.dataStructure.Projet;
+import org.mql.java.dataStructure.Package;
+import org.mql.java.dataStructure.ClassModel;
+import org.mql.java.dataStructure.Relation;
 
 
 public class ClassParser {
@@ -144,6 +155,68 @@ public class ClassParser {
 				
 	}
 
+
+
+	
+
+
+
+	
+
+
+	public static void persistProjet(Map<String, List<Class>> classes, Map<String, List<Class>> interfaces, String outputPath) {
+        // Create a StringBuilder to build the XML content
+        StringBuilder xmlBuilder = new StringBuilder();
+
+        // Start the root element
+        xmlBuilder.append("<Projet> \n");
+
+        // Iterate over packages
+        for (Map.Entry<String, List<Class>> entry : classes.entrySet()) {
+            xmlBuilder.append("<Package> \n");
+            xmlBuilder.append("<PackageName>").append(entry.getKey()).append("</PackageName> \n");
+
+            // Iterate over classes in the package
+            for (Class<?> classA : entry.getValue()) {
+                xmlBuilder.append("<ClassModel> \n");
+                xmlBuilder.append("<ClassName>").append(classA.getSimpleName()).append("</ClassName> \n");
+
+                // Iterate over relationships
+                xmlBuilder.append("<Relationships> \n");
+                for (Class<?> classB : entry.getValue()) {
+                    if (classA != classB) {
+                        String relationshipType = getRelationshipType(classA, classB);
+                        if (relationshipType != null) {
+                            xmlBuilder.append("<Relation> \n");
+                            xmlBuilder.append("<RelationshipType>").append(relationshipType).append("</RelationshipType> \n");
+                            xmlBuilder.append("<RelatedClass>").append(classB.getSimpleName()).append("</RelatedClass> \n");
+                            xmlBuilder.append("</Relation> \n");
+                        }
+                    }
+                }
+                xmlBuilder.append("</Relationships> \n");
+
+                xmlBuilder.append("</ClassModel> \n");
+            }
+
+            xmlBuilder.append("</Package> \n");
+        }
+
+        // Close the root element
+        xmlBuilder.append("</Projet> \n");
+
+        // Print or use the XML content as needed
+        String xmlString = xmlBuilder.toString();
+        System.out.println(xmlString);
+
+        // You can then write the XML content to a file if needed
+        try (FileWriter writer = new FileWriter(outputPath)) {
+            writer.write(xmlString);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }	
+
 	public static List<String> extractAnnotations(List<String> packages, String path) throws ClassNotFoundException {
         Map<String, List<String>> classesByPackages = new HashMap<>();
         URL binUrl;
@@ -169,7 +242,7 @@ public class ClassParser {
                 		Class<?> externalClass=classLoader.loadClass(mypackage+"."+file.getName().replace(".class", ""));
 					
                 	if(externalClass.isAnnotation() ) {
-                        classesInPackage.add(file.getName());
+                        classesInPackage.add(file.getName().replace(".class", ""));
 
                 	}
                 }
@@ -188,14 +261,13 @@ public class ClassParser {
             	
                 packageInfo.append(className).append(", ");
             }
-            // Remove the trailing ", " and add to the result list
             result.add(packageInfo.substring(0, packageInfo.length() - 2));
         }
 
         return result;
     }
-	public static List<String> extractInterfaces(List<String> packages, String path) throws ClassNotFoundException {
-        Map<String, List<String>> classesByPackages = new HashMap<>();
+	public static Map<String, List<Class>> extractInterfaces(List<String> packages, String path) throws ClassNotFoundException {
+        Map<String, List<Class>> classesByPackages = new HashMap<>();
         URL binUrl;
 		try {
 			binUrl = new File(path).toURI().toURL();
@@ -211,7 +283,7 @@ public class ClassParser {
             String pack = mypackage.replace('.', '\\');
             File dir = new File(path + "\\" + pack);
             File classes[] = dir.listFiles();
-            List<String> classesInPackage = new ArrayList<>();
+            List<Class> classesInPackage = new ArrayList<>();
 
             if (classes != null) {
                 for (File file : classes) {
@@ -219,7 +291,7 @@ public class ClassParser {
                 		Class<?> externalClass=classLoader.loadClass(mypackage+"."+file.getName().replace(".class", ""));
 					
                 	if(externalClass.isInterface()) {
-                        classesInPackage.add(file.getName());
+                        classesInPackage.add(externalClass);
 
                 	}
                 }
@@ -231,21 +303,12 @@ public class ClassParser {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        List<String> result = new ArrayList<>();
-        for (Map.Entry<String, List<String>> entry : classesByPackages.entrySet()) {
-            StringBuilder packageInfo = new StringBuilder(entry.getKey() + ": ");
-            for (String className : entry.getValue()) {
-            	
-                packageInfo.append(className).append(", ");
-            }
-            // Remove the trailing ", " and add to the result list
-            result.add(packageInfo.substring(0, packageInfo.length() - 2));
-        }
 
-        return result;
+
+        return classesByPackages;
     }
-	public static List<String> extractClasses(List<String> packages, String path) throws ClassNotFoundException {
-        Map<String, List<String>> classesByPackages = new HashMap<>();
+	public static Map<String, List<Class>>  extractClasses(List<String> packages, String path) throws ClassNotFoundException {
+        Map<String, List<Class>> classesByPackages = new HashMap<>();
         URL binUrl;
 		try {
 			binUrl = new File(path).toURI().toURL();
@@ -258,7 +321,7 @@ public class ClassParser {
             String pack = mypackage.replace('.', '\\');
             File dir = new File(path + "\\" + pack);
             File classes[] = dir.listFiles();
-            List<String> classesInPackage = new ArrayList<>();
+            List<Class> classesInPackage = new ArrayList<>();
 
             if (classes != null) {
                 for (File file : classes) {
@@ -266,7 +329,7 @@ public class ClassParser {
                 		Class<?> externalClass=classLoader.loadClass(mypackage+"."+file.getName().replace(".class", ""));
 					
                 	if(!externalClass.isAnnotation() && !externalClass.isInterface()) {
-                        classesInPackage.add(file.getName());
+                        classesInPackage.add(externalClass);
 
                 	}
                 }
@@ -278,18 +341,18 @@ public class ClassParser {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        List<String> result = new ArrayList<>();
-        for (Map.Entry<String, List<String>> entry : classesByPackages.entrySet()) {
-            StringBuilder packageInfo = new StringBuilder(entry.getKey() + ": ");
-            for (String className : entry.getValue()) {
-            	
-                packageInfo.append(className).append(", ");
-            }
+//        List<String> result = new ArrayList<>();
+//        for (Map.Entry<String, List<String>> entry : classesByPackages.entrySet()) {
+//            StringBuilder packageInfo = new StringBuilder(entry.getKey() + ": ");
+//            for (String className : entry.getValue()) {
+//            	
+//                packageInfo.append(className).append(", ");
+//            }
+//
+//            result.add(packageInfo.substring(0, packageInfo.length() - 2));
+//        }
 
-            result.add(packageInfo.substring(0, packageInfo.length() - 2));
-        }
-
-        return result;
+        return classesByPackages;
     }
 	public String getSupperClass(Class<?> myClass) {
 		String name="";
@@ -303,7 +366,120 @@ public class ClassParser {
 		return name;
 				
 	}
-	 
+	
+	
+	public static List<String> extractRelations(Map<String, List<Class>> classes,Map<String, List<Class>> interfaces) {
+	    List<String> relationships = new ArrayList<>();
+
+	    for (Map.Entry<String, List<Class>> entry : classes.entrySet()) {
+	        StringBuilder packageInfo = new StringBuilder("");
+
+	        for (Class<?> classA : entry.getValue()) {
+                String implementsInterface = implementsInterface(classA, interfaces);
+                if (implementsInterface!=null) {
+                    relationships.add(classA.getSimpleName() + " implemente l'interface "+implementsInterface);
+                }
+	            for (Class<?> classB : entry.getValue()) {
+	                if (classA != classB) {
+	                	 String relationshipType = getRelationshipType(classA, classB);
+
+	                        if (relationshipType != null) {
+	                            relationships.add(classA.getSimpleName() + " a " + relationshipType + "  avec   " + classB.getSimpleName());
+	                        }
+
+	                       
+	                    
+	                    
+                     
+	                }
+	            }
+	        }
+	        relationships.add(packageInfo.toString());
+	    }
+
+	    return relationships;
+	}
+
+	
+	
+	  private static String getRelationshipType(Class<?> classA, Class<?> classB) {
+	        if (isAssociation(classA, classB)) {
+	            return "composition normale";
+	        } else if (isAgregation(classA, classB)) {
+	            return "agregation";
+	        } else if (isInheritance(classA, classB)) {
+	            return "inheritance";
+	        }
+	        return null;
+	    }
+
+	    private static boolean isAssociation(Class<?> classA, Class<?> classB) {
+	    	 
+
+	           for (Field fieldd : classA.getDeclaredFields()) {
+	            if (fieldd.getType().equals(classB)) {
+	                return true;
+	            }
+	        }
+	        return false;
+	    }
+
+	    
+	    private static boolean isAgregation(Class<?> classA, Class<?> classB) {
+	        for (Field field : classA.getDeclaredFields()) {
+	            if (isListOfClass(field, classB)) {
+	                return true;
+	            }
+	        }
+	        return false;
+	    }
+
+	    private static boolean isListOfClass(Field field, Class<?> targetClass) {
+	        if (field.getType() == List.class && field.getGenericType() instanceof ParameterizedType) {
+	            ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
+	            Type[] typeArguments = parameterizedType.getActualTypeArguments();
+	            if (typeArguments.length == 1 && typeArguments[0] instanceof Class) {
+	                Class<?> listElementType = (Class<?>) typeArguments[0];
+	                return listElementType.equals(targetClass);
+	            }
+	        }
+	        return false;
+	    }
+
+	    private static boolean isComposition(Field field, Class<?> classB) {
+	        if (field.getType().equals(classB)) {
+	            return true;
+	        }
+	        return false;
+	    }
+	    private static boolean isInheritance(Class<?> classA, Class<?> classB) {
+	        return classA.isAssignableFrom(classB) || classB.isAssignableFrom(classA);
+	    }
+	    
+	    
+	    private static String implementsInterface(Class<?> myClass, Map<String, List<Class>> interfaces) {
+	        Class<?>[] interfacesOfClass = myClass.getInterfaces();
+
+	        for (Class<?> interfaceClass : interfacesOfClass) {
+	        	for (Map.Entry<String, List<Class>> entry : interfaces.entrySet()) {
+	    	        for (Class<?> classA : entry.getValue()) {
+	    	        	 if (classA.equals(interfaceClass)) {
+	    	        		 return interfaceClass.getSimpleName();
+	    	        	 }	 
+	    	        }
+	        		              
+	                   
+	                }
+	            }
+	        
+
+	        Class<?> superClass = myClass.getSuperclass();
+	        if (superClass != null) {
+	            return implementsInterface(superClass, interfaces);
+	        }
+
+	        return null;
+	    }
 	
 
 	 public static List<String> getAllPackages(File projectURL) throws Exception {
