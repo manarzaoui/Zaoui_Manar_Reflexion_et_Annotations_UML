@@ -28,14 +28,54 @@ import java.util.Set;
 import javax.swing.JFrame;
 
 import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
 import org.mql.java.dataStructure.Projet;
 import org.mql.java.dataStructure.Package;
 import org.mql.java.dataStructure.ClassModel;
 import org.mql.java.dataStructure.Relation;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 
 public class ClassParser {
 
+	
+	public Field[] getFields(String nomQ) {
+		
+		try {
+			 Class<?> c3= Class.forName(nomQ);
+			 Field[] fields=c3.getDeclaredFields();
+              return fields;
+			
+		} catch (Exception e) {
+			 System.out.println("Exception "+e.getMessage());
+			 return null;
+		}
+		   
+		 
+	}
+	public Method[] getMethods(String nomQ) {
+			
+			try {
+				 Class<?> c3= Class.forName(nomQ);
+				 Method[] methods=c3.getDeclaredMethods();
+	              return methods;
+				
+			} catch (Exception e) {
+				 System.out.println("Exception "+e.getMessage());
+				 return null;
+			}
+			   
+			 
+	}
+	
+	
 	public String ClassParser(String nomQ) {
 		
 		String sequellet="Compiled from '"+nomQ+"' ... \n";
@@ -165,58 +205,64 @@ public class ClassParser {
 
 
 	public static void persistProjet(Map<String, List<Class>> classes, Map<String, List<Class>> interfaces, String outputPath) {
-        // Create a StringBuilder to build the XML content
-        StringBuilder xmlBuilder = new StringBuilder();
+        try {
+            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 
-        // Start the root element
-        xmlBuilder.append("<Projet> \n");
+            Document doc = docBuilder.newDocument();
+            Element rootElement = doc.createElement("Projet");
+            doc.appendChild(rootElement);
 
-        // Iterate over packages
-        for (Map.Entry<String, List<Class>> entry : classes.entrySet()) {
-            xmlBuilder.append("<Package> \n");
-            xmlBuilder.append("<PackageName>").append(entry.getKey()).append("</PackageName> \n");
+            for (Map.Entry<String, List<Class>> entry : classes.entrySet()) {
+                Element packageElement = doc.createElement("Package");
+                rootElement.appendChild(packageElement);
 
-            // Iterate over classes in the package
-            for (Class<?> classA : entry.getValue()) {
-                xmlBuilder.append("<ClassModel> \n");
-                xmlBuilder.append("<ClassName>").append(classA.getSimpleName()).append("</ClassName> \n");
+                Element packageNameElement = doc.createElement("name");
+                packageNameElement.appendChild(doc.createTextNode(entry.getKey()));
+                packageElement.appendChild(packageNameElement);
 
-                // Iterate over relationships
-                xmlBuilder.append("<Relationships> \n");
-                for (Class<?> classB : entry.getValue()) {
-                    if (classA != classB) {
-                        String relationshipType = getRelationshipType(classA, classB);
-                        if (relationshipType != null) {
-                            xmlBuilder.append("<Relation> \n");
-                            xmlBuilder.append("<RelationshipType>").append(relationshipType).append("</RelationshipType> \n");
-                            xmlBuilder.append("<RelatedClass>").append(classB.getSimpleName()).append("</RelatedClass> \n");
-                            xmlBuilder.append("</Relation> \n");
+                for (Class<?> classA : entry.getValue()) {
+                    Element classModelElement = doc.createElement("Class");
+                    packageElement.appendChild(classModelElement);
+
+                    Element classNameElement = doc.createElement("name");
+                    classNameElement.appendChild(doc.createTextNode(classA.getSimpleName()));
+                    classModelElement.appendChild(classNameElement);
+
+                    Element relationshipsElement = doc.createElement("Relations");
+                    classModelElement.appendChild(relationshipsElement);
+
+                    for (Class<?> classB : entry.getValue()) {
+                        if (classA != classB) {
+                            String relationshipType = getRelationshipType(classA, classB);
+                            if (relationshipType != null) {
+                                Element relationElement = doc.createElement("relation");
+                                relationshipsElement.appendChild(relationElement);
+
+                                Element relationshipTypeElement = doc.createElement("typeRelation");
+                                relationshipTypeElement.appendChild(doc.createTextNode(relationshipType));
+                                relationElement.appendChild(relationshipTypeElement);
+
+                                Element relatedClassElement = doc.createElement("classeReliee");
+                                relatedClassElement.appendChild(doc.createTextNode(classB.getSimpleName()));
+                                relationElement.appendChild(relatedClassElement);
+                            }
                         }
                     }
                 }
-                xmlBuilder.append("</Relationships> \n");
-
-                xmlBuilder.append("</ClassModel> \n");
             }
 
-            xmlBuilder.append("</Package> \n");
-        }
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(doc);
+            StreamResult result = new StreamResult(new FileWriter(outputPath));
+            transformer.transform(source, result);
 
-        // Close the root element
-        xmlBuilder.append("</Projet> \n");
-
-        // Print or use the XML content as needed
-        String xmlString = xmlBuilder.toString();
-        System.out.println(xmlString);
-
-        // You can then write the XML content to a file if needed
-        try (FileWriter writer = new FileWriter(outputPath)) {
-            writer.write(xmlString);
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-    }	
-
+    }
+	
 	public static List<String> extractAnnotations(List<String> packages, String path) throws ClassNotFoundException {
         Map<String, List<String>> classesByPackages = new HashMap<>();
         URL binUrl;
@@ -224,10 +270,8 @@ public class ClassParser {
 			binUrl = new File(path).toURI().toURL();
 		
     
-        // Create a class loader with the bin directory URL
         URLClassLoader classLoader = new URLClassLoader(new URL[]{binUrl});
 		
-        // Load a class from the bin directory
         
         
         for (String mypackage : packages) {
@@ -273,10 +317,8 @@ public class ClassParser {
 			binUrl = new File(path).toURI().toURL();
 		
     
-        // Create a class loader with the bin directory URL
         URLClassLoader classLoader = new URLClassLoader(new URL[]{binUrl});
 		
-        // Load a class from the bin directory
         
         
         for (String mypackage : packages) {
@@ -452,6 +494,7 @@ public class ClassParser {
 	        }
 	        return false;
 	    }
+	  
 	    private static boolean isInheritance(Class<?> classA, Class<?> classB) {
 	        return classA.isAssignableFrom(classB) || classB.isAssignableFrom(classA);
 	    }
@@ -482,7 +525,7 @@ public class ClassParser {
 	    }
 	
 
-	 public static List<String> getAllPackages(File projectURL) throws Exception {
+	    public static List<String> getAllPackages(File projectURL) throws Exception {
 	        String path = projectURL.getPath();
 	        File projectDir = new File(path);
 	        List<String> repositoriesWithFiles = new ArrayList<>();
@@ -491,7 +534,7 @@ public class ClassParser {
 	        return repositoriesWithFiles;
 	    }
 
-	  private static void scanPackages(File directory, String parentPackage, List<String> repositoriesWithFiles) {
+	    private static void scanPackages(File directory, String parentPackage, List<String> repositoriesWithFiles) {
 	        File[] files = directory.listFiles();
 
 	        if (files != null) {

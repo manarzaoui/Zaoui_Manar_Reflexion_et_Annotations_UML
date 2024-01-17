@@ -1,10 +1,19 @@
 package org.mql.java.reflection;
 
+import java.awt.Color;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import javax.swing.JFrame;
+
+import org.java.mql.ui.Form;
+import org.java.mql.ui.MyClass;
+import org.java.mql.ui.Package;
+import org.mql.java.dataStructure.ClassModel;
+
 
 public class Examples {
 
@@ -17,37 +26,37 @@ public class Examples {
 			String pathfile="\\Manar_zaoui\\output.xml";;
 
 			File projectURL = new File(path);
-	            List<String>packages  =ClassParser.getAllPackages(projectURL);
-	            Map<String, List<Class>>  classes =ClassParser.extractClasses(packages,path);
+	            List<String>Forms  =ClassParser.getAllPackages(projectURL);
+	            Map<String, List<Class>>  classes =ClassParser.extractClasses(Forms,path);
 	            
 	            
 	          List<String> myclasses = new ArrayList<>();
 	          for (Map.Entry<String, List<Class>> entry : classes.entrySet()) {
-	              StringBuilder packageInfo = new StringBuilder(entry.getKey() + ": ");
+	              StringBuilder FormInfo = new StringBuilder(entry.getKey() + ": ");
 	              for (Class className : entry.getValue()) {
 	              	
-	                  packageInfo.append(className.getSimpleName()).append(", ");
+	                  FormInfo.append(className.getSimpleName()).append(", ");
 	              }
 	  
-	              myclasses.add(packageInfo.substring(0, packageInfo.length() - 2));
+	              myclasses.add(FormInfo.substring(0, FormInfo.length() - 2));
 	          }
-	            Map<String, List<Class>> interfaces =ClassParser.extractInterfaces(packages,path);
+	            Map<String, List<Class>> interfaces =ClassParser.extractInterfaces(Forms,path);
 
 	        List<String> resultinterfaces = new ArrayList<>();
 	        for (Map.Entry<String, List<Class>> entry : interfaces.entrySet()) {
-	            StringBuilder packageInfo = new StringBuilder(entry.getKey() + ": ");
+	            StringBuilder FormInfo = new StringBuilder(entry.getKey() + ": ");
 	            for (Class className : entry.getValue()) {
 	            	
-	                packageInfo.append(className.getSimpleName()).append(", ");
+	                FormInfo.append(className.getSimpleName()).append(", ");
 	            }
-	            resultinterfaces.add(packageInfo.substring(0, packageInfo.length() - 2));
+	            resultinterfaces.add(FormInfo.substring(0, FormInfo.length() - 2));
 	        }
 	          
-	            List<String> annotations =ClassParser.extractAnnotations(packages,path);
+	            List<String> annotations =ClassParser.extractAnnotations(Forms,path);
 	            List<String> relationShips =ClassParser.extractRelations(classes,interfaces);
 
-                System.out.println("mes packages :====>");
-	            packages.forEach(System.out::println);
+                System.out.println("mes Forms :====>");
+	            Forms.forEach(System.out::println);
                 System.out.println("\n");
 	            System.out.println("mes classes :====>");
 	            myclasses.forEach(System.out::println);
@@ -66,8 +75,23 @@ public class Examples {
                 System.out.println("\n");
 
 
-	             ClassParser.persistProjet(classes, interfaces, pathfile);
-		     
+//	             ClassParser.persistProjet(classes, interfaces, pathfile);
+	             
+	              
+                JFrame jframe = new JFrame();
+                Form form = new Form(800, 500);
+                jframe.setContentPane(form);
+                jframe.pack();
+                jframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                jframe.setLocationRelativeTo(null);
+                jframe.setVisible(true);
+               
+                form.addButton("diagram Package", 120, "package", classes);
+                form.addButton("diagram class", 120, "class", classes);
+	         		  
+
+	         	
+		    
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
