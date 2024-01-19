@@ -8,9 +8,10 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.JFrame;
+import javax.swing.JScrollPane;
 
+import org.java.mql.ui.ClassPanel;
 import org.java.mql.ui.Form;
-import org.java.mql.ui.MyClass;
 import org.java.mql.ui.Package;
 import org.mql.java.dataStructure.ClassModel;
 
@@ -79,15 +80,43 @@ public class Examples {
 	             
 	              
                 JFrame jframe = new JFrame();
-                Form form = new Form(800, 500);
-                jframe.setContentPane(form);
+                Form form = new Form(800, 1500);
+                JScrollPane scrollPane = new JScrollPane(form);
+
+                // Set up the frame with the scroll pane as content
+                jframe.setContentPane(scrollPane);
+                int startX = 10;
+                int startY = 30;
+                int height = 40;
+                for (Map.Entry<String, List<Class>> entry : classes.entrySet()) {
+                  	for (Class className : entry.getValue()) {
+                        form.add(new ClassPanel(className));
+                        startX += 200;
+							//if (startX > (10 + 200 * 2)) {
+							//                         startX = 10;
+							//                      startY += height * 2;
+							//                      height = 45;
+							//                  }
+    				}
+                }
+                for (Map.Entry<String, List<Class>> entry : interfaces.entrySet()) {
+                	for (Class className : entry.getValue()) {
+                        form.add(new ClassPanel(className));
+                        startX += 200;
+							//if (startX > (10 + 200 * 2)) {
+							//                         startX = 10;
+							//                      startY += height * 2;
+							//                      height = 45;
+							//                  }
+    				}
+                }
+                
                 jframe.pack();
                 jframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 jframe.setLocationRelativeTo(null);
                 jframe.setVisible(true);
                
-                form.addButton("diagram Package", 120, "package", classes);
-                form.addButton("diagram class", 120, "class", classes);
+               
 	         		  
 
 	         	

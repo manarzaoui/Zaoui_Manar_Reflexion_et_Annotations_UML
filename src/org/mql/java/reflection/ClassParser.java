@@ -46,7 +46,7 @@ import org.w3c.dom.Element;
 public class ClassParser {
 
 	
-	public Field[] getFields(String nomQ) {
+	public static  Field[] getFields(String nomQ) {
 		
 		try {
 			 Class<?> c3= Class.forName(nomQ);
@@ -60,7 +60,7 @@ public class ClassParser {
 		   
 		 
 	}
-	public Method[] getMethods(String nomQ) {
+	public static Method[] getMethods(String nomQ) {
 			
 			try {
 				 Class<?> c3= Class.forName(nomQ);
@@ -423,9 +423,9 @@ public class ClassParser {
                 }
 	            for (Class<?> classB : entry.getValue()) {
 	                if (classA != classB) {
-	                	 String relationshipType = getRelationshipType(classA, classB);
+	                	 int relationshipType = getRelationshipTypes(classA, classB);
 
-	                        if (relationshipType != null) {
+	                        if (relationshipType != 0) {
 	                            relationships.add(classA.getSimpleName() + " a " + relationshipType + "  avec   " + classB.getSimpleName());
 	                        }
 
@@ -455,7 +455,19 @@ public class ClassParser {
 	        return null;
 	    }
 
-	    private static boolean isAssociation(Class<?> classA, Class<?> classB) {
+
+
+ public static int getRelationshipTypes(Class<?> classA, Class<?> classB) {
+    if (isAssociation(classA, classB)) {
+        return 1; 
+    } else if (isAgregation(classA, classB)) {
+        return 2; 
+    } else if (isInheritance(classA, classB)) {
+        return 3; 
+    }
+    return 0; // No relationship
+}
+	private static boolean isAssociation(Class<?> classA, Class<?> classB) {
 	    	 
 
 	           for (Field fieldd : classA.getDeclaredFields()) {

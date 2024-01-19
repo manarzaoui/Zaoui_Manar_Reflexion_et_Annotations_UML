@@ -1,6 +1,5 @@
 package org.java.mql.ui;
 
-import java.awt.Button;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -31,7 +30,7 @@ public class Form extends JPanel  {
 		container = new JPanel();
         add(container);
         container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
-        container.setBorder(new TitledBorder(new EtchedBorder(), "jjj  "));
+        container.setBorder(new TitledBorder(new EtchedBorder(), "Desinner un diagramme  "));
 		setBorder(new LineBorder(Color.blue));
 		shapes=new Vector<ShapeUml>();
 	}
@@ -45,7 +44,7 @@ public class Form extends JPanel  {
 	}
 	public void addButton(String label, int width, String labelForm,  Map<String, List<Class>> classes) {
 		
-		container.add(new org.java.mql.ui.Button(label, width, labelForm));
+		container.add(new Button(label, width, labelForm,classes));
 	
 	}
 
