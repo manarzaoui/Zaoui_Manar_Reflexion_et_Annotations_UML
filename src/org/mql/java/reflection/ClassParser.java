@@ -457,7 +457,7 @@ public class ClassParser {
 
 
 
- public static int getRelationshipTypes(Class<?> classA, Class<?> classB) {
+ private static int getRelationshipTypes(Class<?> classA, Class<?> classB) {
     if (isAssociation(classA, classB)) {
         return 1; 
     } else if (isAgregation(classA, classB)) {

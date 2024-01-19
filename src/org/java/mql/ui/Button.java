@@ -56,7 +56,7 @@ public class Button extends JPanel {
 
             for (Map.Entry<String, List<Class>> entry : classes.entrySet()) {
             	for (Class className : entry.getValue()) {
-                    form.add(new ClassPanel(className));
+//                    form.add(new ClassPanel(className));
                     startX += 200;
  
 				}

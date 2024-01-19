@@ -75,11 +75,19 @@ public class ClassPanel extends JPanel {
         return panel;
     }
     @Override
-    protected void paintComponent(Graphics g) {
-
-      
+	protected void paintComponent(Graphics g) {
+		// TODO Auto-generated method stub
+    	
+		super.paintComponent(g);
+		
+			
+		  
+	}
+  
+    @Override
+    public boolean isOpaque() {
+        return false;
     }
-
     private JPanel createMethodsPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(0, 1));

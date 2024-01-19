@@ -41,7 +41,7 @@ public class Examples {
 	  
 	              myclasses.add(FormInfo.substring(0, FormInfo.length() - 2));
 	          }
-	            Map<String, List<Class>> interfaces =ClassParser.extractInterfaces(Forms,path);
+	        Map<String, List<Class>> interfaces =ClassParser.extractInterfaces(Forms,path);
 
 	        List<String> resultinterfaces = new ArrayList<>();
 	        for (Map.Entry<String, List<Class>> entry : interfaces.entrySet()) {
@@ -91,7 +91,8 @@ public class Examples {
                 for (Map.Entry<String, List<Class>> entry : classes.entrySet()) {
                   	for (Class className : entry.getValue()) {
                         form.add(new ClassPanel(className));
-                        startX += 200;
+                                                startX += 200;
+
 							//if (startX > (10 + 200 * 2)) {
 							//                         startX = 10;
 							//                      startY += height * 2;

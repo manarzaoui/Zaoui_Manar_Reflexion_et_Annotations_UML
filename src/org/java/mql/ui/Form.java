@@ -29,6 +29,7 @@ public class Form extends JPanel  {
 		setBackground(Color.white);
 		container = new JPanel();
         add(container);
+        
         container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
         container.setBorder(new TitledBorder(new EtchedBorder(), "Desinner un diagramme  "));
 		setBorder(new LineBorder(Color.blue));
