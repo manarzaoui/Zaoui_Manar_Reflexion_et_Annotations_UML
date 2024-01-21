@@ -21,24 +21,25 @@ public Package(int x, int y, int width, int height,String namePackage,List<Class
 	this.nameClasses=nameClasses;
 	this.height = height;
 }
-public void paint(Graphics g) {
-	 
-	int labelHeight = 20;
-	 g.setColor(Color.lightGray);
-	 //dessiner Rectangle
-     g.fillRect(x, y+labelHeight, width, height);
+   public void paint(Graphics g) {
 
-     // Draw package label
-     
-     g.setColor(Color.black);
-     //dessiner conteur
-     g.drawRect(x, y, 55, labelHeight); // Draw a rectangle for the label
-     int stringY = y + height - 5; // Adjust the margin as needed
-     g.drawString(namePackage, x + width / 2 - g.getFontMetrics().stringWidth(namePackage) / 2, stringY);
+	        int labelHeight = 20;
+	        g.setColor(Color.lightGray);
+	        g.fillRect(x, y + labelHeight, width, height);
 
-     // Draw lines to represent the package
-     g.drawLine(x, y + labelHeight, x + width, y + labelHeight); // Horizontal line at the bottom of the label
+	        g.setColor(Color.black);
+	        g.drawRect(x, y, 55, labelHeight);
+	        int stringY = y + height - 5;
+	        g.drawString(namePackage, x + width / 2 - g.getFontMetrics().stringWidth(namePackage) / 2, stringY);
 
-}
+	        g.drawLine(x, y + labelHeight, x + width, y + labelHeight);
+
+	        int classY = y + stringY + 10; 
+	        for (Class aClass : nameClasses) {
+	            g.drawString(aClass.getSimpleName(), x + 10, classY);
+	            classY += 20; 
+	        }
+	    
+      }
 
 }

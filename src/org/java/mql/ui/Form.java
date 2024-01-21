@@ -20,6 +20,8 @@ public class Form extends JPanel  {
 	private static final long serialVersionUID = 1L;
 	private int width,height;
     private JPanel container;
+    private LabelTextField textField1;
+    private int labelSize = 100;
 
 	private Vector<ShapeUml> shapes;
 	public Form(int width,int height) {
@@ -43,9 +45,9 @@ public class Form extends JPanel  {
 		shapes.add(shpae);
 		repaint();
 	}
-	public void addButton(String label, int width, String labelForm,  Map<String, List<Class>> classes) {
+	public void addButton(String label, int width, String labelForm  ) {
 		
-		container.add(new Button(label, width, labelForm,classes));
+		container.add(new Button(label, width, labelForm,textField1));
 	
 	}
 
@@ -59,4 +61,16 @@ public class Form extends JPanel  {
 			shape.paint(g);
 		}
 	}
+	public void addField(String label, int size,String key) {
+        LabelTextField textField = new LabelTextField(label, size, labelSize,key);
+        container.add(textField);
+        
+        if (key.equals("projet")) {
+            textField1 = textField;
+        }
+    }
+
+    public String getTextField1Value() {
+        return textField1.getTextFieldValue();
+    }
 }

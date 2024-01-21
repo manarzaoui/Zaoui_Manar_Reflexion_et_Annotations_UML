@@ -3,6 +3,7 @@ package org.java.mql.ui;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -14,11 +15,13 @@ import org.mql.java.reflection.ClassParser;
 
 public class ClassPanel extends JPanel {
     private Class<?> classModel;
-    
-    public ClassPanel(Class<?> classModel) {
+    java.util.List<String> packages;
+    String path;
+    public ClassPanel(java.util.List<String> packages,String path,Class<?> classModel) {
         this.classModel = classModel;
         setBackground(Color.white);
-
+        this.packages=packages;
+        this.path=path;
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); 
 
         add(createClassNamePanel());
@@ -50,9 +53,8 @@ public class ClassPanel extends JPanel {
         panel.setLayout(new GridLayout(0, 1));
         panel.setBackground(Color.white);
 
-        Field[] fields = ClassParser.getFields(classModel.getName());
+        Field[] fields = ClassParser.getFields(classModel,path);
        if(fields.length==0) {
-    	   System.out.println(classModel.getName());
     	   JLabel label = new JLabel("");
            label.setPreferredSize(new Dimension(200, 20)); 
            label.setBorder(new EmptyBorder(5, 5, 5, 5)); 
@@ -93,10 +95,9 @@ public class ClassPanel extends JPanel {
         panel.setLayout(new GridLayout(0, 1));
         panel.setBackground(Color.white);
 
-        Method[] methods = ClassParser.getMethods(classModel.getName());
+        Method[] methods = ClassParser.getMethods(classModel,path);
        java.util.List<String> params=new ArrayList<>();
        if(methods.length==0) {
-    	   System.out.println(classModel.getName());
     	   JLabel label = new JLabel("");
            label.setPreferredSize(new Dimension(200, 20)); 
            label.setBorder(new EmptyBorder(5, 5, 5, 5)); 

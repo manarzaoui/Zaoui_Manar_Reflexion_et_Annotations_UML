@@ -12,23 +12,26 @@ import javax.swing.JScrollPane;
 
 import org.java.mql.ui.ClassPanel;
 import org.java.mql.ui.Form;
+import org.java.mql.ui.LabelTextField;
 import org.java.mql.ui.Package;
 import org.mql.java.dataStructure.ClassModel;
 
 
 public class Examples {
+    private LabelTextField labelTextField;  // Reference to LabelTextField
 
 	public Examples() {
 		 exp01();
 	}
      void exp01() {
 		try {
+			
 			String path="\\Manar_zaoui\\MQL\\java\\p01-revision\\Zaoui_Manar_Reflexion_et_Annotations_UML\\bin";;
-			String pathfile="\\Manar_zaoui\\output.xml";;
+			String pathfile="\\output.xml";;
 
 			File projectURL = new File(path);
-	            List<String>Forms  =ClassParser.getAllPackages(projectURL);
-	            Map<String, List<Class>>  classes =ClassParser.extractClasses(Forms,path);
+	         List<String> packages  =ClassParser.getAllPackages(projectURL);
+	        Map<String, List<Class>>  classes =ClassParser.extractClasses(packages,path);
 	            
 	            
 	          List<String> myclasses = new ArrayList<>();
@@ -41,7 +44,7 @@ public class Examples {
 	  
 	              myclasses.add(FormInfo.substring(0, FormInfo.length() - 2));
 	          }
-	        Map<String, List<Class>> interfaces =ClassParser.extractInterfaces(Forms,path);
+	        Map<String, List<Class>> interfaces =ClassParser.extractInterfaces(packages,path);
 
 	        List<String> resultinterfaces = new ArrayList<>();
 	        for (Map.Entry<String, List<Class>> entry : interfaces.entrySet()) {
@@ -53,11 +56,11 @@ public class Examples {
 	            resultinterfaces.add(FormInfo.substring(0, FormInfo.length() - 2));
 	        }
 	          
-	            List<String> annotations =ClassParser.extractAnnotations(Forms,path);
+	            List<String> annotations =ClassParser.extractAnnotations(packages,path);
 	            List<String> relationShips =ClassParser.extractRelations(classes,interfaces);
 
-                System.out.println("mes Forms :====>");
-	            Forms.forEach(System.out::println);
+                System.out.println("mes Packages :====>");
+	            packages.forEach(System.out::println);
                 System.out.println("\n");
 	            System.out.println("mes classes :====>");
 	            myclasses.forEach(System.out::println);
@@ -80,38 +83,15 @@ public class Examples {
 	             
 	              
                 JFrame jframe = new JFrame();
-                Form form = new Form(800, 1500);
-                JScrollPane scrollPane = new JScrollPane(form);
+                Form form = new Form(500, 150);
 
                 // Set up the frame with the scroll pane as content
-                jframe.setContentPane(scrollPane);
-                int startX = 10;
-                int startY = 30;
-                int height = 40;
-                for (Map.Entry<String, List<Class>> entry : classes.entrySet()) {
-                  	for (Class className : entry.getValue()) {
-                        form.add(new ClassPanel(className));
-                                                startX += 200;
+                jframe.setContentPane(form);
+               form.addField("url projet", 30, "projet");
+               form.addButton("Diagramme de classe", 200, "class");
+               form.addButton("Diagramme de package", 200, "package");
+               form.addButton("persister à xml", 200, "xml");
 
-							//if (startX > (10 + 200 * 2)) {
-							//                         startX = 10;
-							//                      startY += height * 2;
-							//                      height = 45;
-							//                  }
-    				}
-                }
-                for (Map.Entry<String, List<Class>> entry : interfaces.entrySet()) {
-                	for (Class className : entry.getValue()) {
-                        form.add(new ClassPanel(className));
-                        startX += 200;
-							//if (startX > (10 + 200 * 2)) {
-							//                         startX = 10;
-							//                      startY += height * 2;
-							//                      height = 45;
-							//                  }
-    				}
-                }
-                
                 jframe.pack();
                 jframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 jframe.setLocationRelativeTo(null);

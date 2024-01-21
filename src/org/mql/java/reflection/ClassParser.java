@@ -46,29 +46,59 @@ import org.w3c.dom.Element;
 public class ClassParser {
 
 	
-	public static  Field[] getFields(String nomQ) {
+	public static  Field[] getFields(Class myclass,String path) {
 		
-		try {
-			 Class<?> c3= Class.forName(nomQ);
-			 Field[] fields=c3.getDeclaredFields();
-              return fields;
+	
+	     URL binUrl;
+		 try {
+				binUrl = new File(path).toURI().toURL();
 			
-		} catch (Exception e) {
-			 System.out.println("Exception "+e.getMessage());
+	    
+	            URLClassLoader classLoader = new URLClassLoader(new URL[]{binUrl});
+			
+	        
+	    
+	                		Class<?> externalClass=classLoader.loadClass(myclass.getName());
+						
+	            			 Field[] fields=externalClass.getDeclaredFields();
+	                          return fields;
+
+	                	
+	                
+	            
+			
+	        } catch (Exception e) {
+			 System.out.println("ee"+e);
 			 return null;
-		}
+		    }
 		   
+		
 		 
 	}
-	public static Method[] getMethods(String nomQ) {
-			
-			try {
-				 Class<?> c3= Class.forName(nomQ);
-				 Method[] methods=c3.getDeclaredMethods();
-	              return methods;
-				
-			} catch (Exception e) {
-				 System.out.println("Exception "+e.getMessage());
+	public static Method[] getMethods(Class myclass,String path) {
+        URL binUrl;
+	try {
+			binUrl = new File(path).toURI().toURL();
+		
+    
+            URLClassLoader classLoader = new URLClassLoader(new URL[]{binUrl});
+		
+        
+       
+                	
+                		Class<?> externalClass=classLoader.loadClass(myclass.getName());
+					
+            			 Method[] methods=externalClass.getDeclaredMethods();
+                          return methods;
+
+                	
+                
+            
+		
+        }
+     
+			 catch (Exception e) {
+				 System.out.println(e);
 				 return null;
 			}
 			   
@@ -195,13 +225,6 @@ public class ClassParser {
 				
 	}
 
-
-
-	
-
-
-
-	
 
 
 	public static void persistProjet(Map<String, List<Class>> classes, Map<String, List<Class>> interfaces, String outputPath) {
@@ -350,13 +373,13 @@ public class ClassParser {
         return classesByPackages;
     }
 	public static Map<String, List<Class>>  extractClasses(List<String> packages, String path) throws ClassNotFoundException {
-        Map<String, List<Class>> classesByPackages = new HashMap<>();
+		Map<String, List<Class>> classesByPackages = new HashMap<>();
         URL binUrl;
 		try {
 			binUrl = new File(path).toURI().toURL();
 		
     
-        URLClassLoader classLoader = new URLClassLoader(new URL[]{binUrl});
+            URLClassLoader classLoader = new URLClassLoader(new URL[]{binUrl});
 		
         
         for (String mypackage : packages) {
@@ -410,7 +433,7 @@ public class ClassParser {
 	}
 	
 	
-	public static List<String> extractRelations(Map<String, List<Class>> classes,Map<String, List<Class>> interfaces) {
+	  public static List<String> extractRelations(Map<String, List<Class>> classes,Map<String, List<Class>> interfaces) {
 	    List<String> relationships = new ArrayList<>();
 
 	    for (Map.Entry<String, List<Class>> entry : classes.entrySet()) {
@@ -423,9 +446,9 @@ public class ClassParser {
                 }
 	            for (Class<?> classB : entry.getValue()) {
 	                if (classA != classB) {
-	                	 int relationshipType = getRelationshipTypes(classA, classB);
+	                	 String relationshipType = getRelationshipTypes(classA, classB);
 
-	                        if (relationshipType != 0) {
+	                        if (relationshipType != "") {
 	                            relationships.add(classA.getSimpleName() + " a " + relationshipType + "  avec   " + classB.getSimpleName());
 	                        }
 
@@ -455,19 +478,17 @@ public class ClassParser {
 	        return null;
 	    }
 
-
-
- private static int getRelationshipTypes(Class<?> classA, Class<?> classB) {
-    if (isAssociation(classA, classB)) {
-        return 1; 
-    } else if (isAgregation(classA, classB)) {
-        return 2; 
-    } else if (isInheritance(classA, classB)) {
-        return 3; 
-    }
-    return 0; // No relationship
-}
-	private static boolean isAssociation(Class<?> classA, Class<?> classB) {
+	     private static String getRelationshipTypes(Class<?> classA, Class<?> classB) {
+			    if (isAssociation(classA, classB)) {
+			        return "une association normale"; 
+			    } else if (isAgregation(classA, classB)) {
+			        return "une agregation"; 
+			    } else if (isInheritance(classA, classB)) {
+			        return "une relation heriatage"; 
+			    }
+		        return "une composition"; 
+	     }
+		 private static boolean isAssociation(Class<?> classA, Class<?> classB) {
 	    	 
 
 	           for (Field fieldd : classA.getDeclaredFields()) {
@@ -476,7 +497,7 @@ public class ClassParser {
 	            }
 	        }
 	        return false;
-	    }
+	   }
 
 	    
 	    private static boolean isAgregation(Class<?> classA, Class<?> classB) {
@@ -537,6 +558,7 @@ public class ClassParser {
 	    }
 	
 
+	   
 	    public static List<String> getAllPackages(File projectURL) throws Exception {
 	        String path = projectURL.getPath();
 	        File projectDir = new File(path);
