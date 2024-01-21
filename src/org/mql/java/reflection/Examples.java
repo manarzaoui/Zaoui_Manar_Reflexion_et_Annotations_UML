@@ -83,14 +83,13 @@ public class Examples {
 	             
 	              
                 JFrame jframe = new JFrame();
-                Form form = new Form(500, 150);
+                Form form = new Form(500, 180);
 
-                // Set up the frame with the scroll pane as content
                 jframe.setContentPane(form);
                form.addField("url projet", 30, "projet");
                form.addButton("Diagramme de classe", 200, "class");
                form.addButton("Diagramme de package", 200, "package");
-               form.addButton("persister à xml", 200, "xml");
+               form.addButton("Persister à xml (output.xml)", 200, "xml");
 
                 jframe.pack();
                 jframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

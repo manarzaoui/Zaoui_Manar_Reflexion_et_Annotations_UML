@@ -63,7 +63,7 @@ public class Button extends JPanel {
 
         private void createMyClassFrame() {
         	try {
-           	 String textFieldValue = labelTextField.getTextFieldValue();
+           	 String textFieldValue = "/"+labelTextField.getTextFieldValue();
 
         		 JFrame jframe = new JFrame();
                  Form form = new Form(1000, 700);
@@ -94,13 +94,14 @@ public class Button extends JPanel {
         private void persisterProjetToXml() {
            try {
         	   
-        		 String textFieldValue = labelTextField.getTextFieldValue();	
+        		 String textFieldValue = "/"+labelTextField.getTextFieldValue();	
               	 File projectURL = new File(textFieldValue+"/bin");
             	 List<String> packages =ClassParser.getAllPackages(projectURL);
                  Map<String, List<Class>>  classes=ClassParser.extractClasses(packages,textFieldValue+"/bin");
      	        Map<String, List<Class>> interfaces =ClassParser.extractInterfaces(packages,textFieldValue+"/bin");
+    			String pathfile="output.xml";;
 
-                 ClassParser.persistProjet(classes, interfaces, textFieldValue);
+                 ClassParser.persistProjet(classes, interfaces, pathfile);
 			} catch (Exception e) {
 			}
           	
@@ -109,7 +110,7 @@ public class Button extends JPanel {
         private void createPackageFrame() {
 	      
         	try {
-           	 String textFieldValue = labelTextField.getTextFieldValue();
+           	 String textFieldValue = "/"+labelTextField.getTextFieldValue();
 
                 File projectURL = new File(textFieldValue+"/bin");
                 
